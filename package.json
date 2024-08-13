@@ -3,9 +3,23 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/fs-extra": "^11.0.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "bin": {
+    "optimize-images": "dist/index.js"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "enquirer": "^2.4.1",
+    "fs-extra": "^11.2.0",
+    "ora": "^8.0.1",
+    "path": "^0.12.7",
+    "sharp": "^0.33.4"
   }
 }

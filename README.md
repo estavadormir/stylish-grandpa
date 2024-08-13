@@ -1,15 +1,19 @@
-# stylish-grandpa
+# Image Optimizer CLI
 
-To install dependencies:
+This CLI tool optimizes images in a selected folder and generates two sets of images: original and mobile versions, in their original format and WebP.
 
-```bash
+## Features
+
+- Converts images to WebP.
+- Creates a mobile version for each image.
+- Displays progress and handles errors gracefully.
+- Recursively processes images in nested folders.
+- Informative messages and error handling.
+- Directory autocomplete in folder selection.
+- ASCII art welcome message.
+
+## Installation
+
+```sh
 bun install
 ```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.21. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
