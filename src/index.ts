@@ -2,7 +2,7 @@ import { selectFolder } from "./cli";
 import { processImages } from "./imageProcessor";
 import ora from "ora";
 
-async function main() {
+const main = async () => {
   displayWelcomeMessage();
 
   try {
@@ -28,14 +28,14 @@ async function main() {
   } catch (error) {
     console.error("An error occurred:", error);
   }
-}
+};
 
-function displayWelcomeMessage() {
+const displayWelcomeMessage = () => {
   console.log(`
     ⛱️  Welcome to the Image Optimizer CLI!  ⛱️
     -----------------------------------------
         Let's make your images faster and smaller!
   `);
-}
+};
 
 main();

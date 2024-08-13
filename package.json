@@ -13,6 +13,7 @@
     "optimize-images": "dist/index.js"
   },
   "scripts": {
+    "test": "bun test",
     "start": "bun run src/index.ts"
   },
   "dependencies": {

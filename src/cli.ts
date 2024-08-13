@@ -4,7 +4,7 @@ const { prompt } = require("enquirer");
 
 const ROOT_DIRECTORY = "/";
 
-async function listDirectories(
+const listDirectories = async (
   dir: string
 ): Promise<Array<{ name: string; value: string }>> {
   const files = await fs.readdir(dir);
@@ -25,7 +25,7 @@ async function listDirectories(
   return directories;
 }
 
-export async function selectFolder(): Promise<string | null> {
+export const selectFolder = async (): Promise<string | null> => {
   let currentDir = ROOT_DIRECTORY;
 
   while (true) {

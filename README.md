@@ -4,16 +4,23 @@ This CLI tool optimizes images in a selected folder and generates two sets of im
 
 ## Features
 
-- Converts images to WebP.
-- Creates a mobile version for each image.
-- Displays progress and handles errors gracefully.
-- Recursively processes images in nested folders.
-- Informative messages and error handling.
-- Directory autocomplete in folder selection.
-- ASCII art welcome message.
+- Converts images to WebP. 💾
+- Creates a mobile version for each image. 📱
+- Recursively processes images in nested folders. 🚀
+- Directory autocomplete in folder selection. 🔍
 
 ## Installation
 
 ```sh
 bun install
 ```
+
+## Usage
+
+```sh
+bun start
+```
+
+## Contributing
+
+Contributions are welcome!

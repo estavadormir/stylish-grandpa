@@ -7,11 +7,11 @@ interface ImageOptions {
   height?: number;
 }
 
-async function optimizeAndConvertImage(
+const optimizeAndConvertImage = async (
   imagePath: string,
   outputDir: string,
   options: ImageOptions = {}
-): Promise<void> {
+): Promise<void> => {
   const ext = path.extname(imagePath);
   const baseName = path.basename(imagePath, ext);
 
@@ -42,12 +42,12 @@ async function optimizeAndConvertImage(
       .toFormat("webp")
       .toFile(path.join(mobileSizePath, `${baseName}.webp`));
   }
-}
+};
 
-async function getAllImageFiles(
+const getAllImageFiles = async (
   dirPath: string,
   imageFiles: string[] = []
-): Promise<string[]> {
+): Promise<string[]> => {
   const fileNames = await fs.readdir(dirPath);
 
   for (const fileName of fileNames) {
@@ -62,9 +62,9 @@ async function getAllImageFiles(
   }
 
   return imageFiles;
-}
+};
 
-export async function processImages(folderPath: string): Promise<number> {
+export const processImages = async (folderPath: string): Promise<number> => {
   const imageFiles = await getAllImageFiles(folderPath);
 
   if (imageFiles.length === 0) {
@@ -78,4 +78,4 @@ export async function processImages(folderPath: string): Promise<number> {
   }
 
   return imageFiles.length;
-}
+};
