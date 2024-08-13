@@ -6,7 +6,7 @@ const ROOT_DIRECTORY = "/";
 
 const listDirectories = async (
   dir: string
-): Promise<Array<{ name: string; value: string }>> {
+): Promise<Array<{ name: string; value: string }>> => {
   const files = await fs.readdir(dir);
   const directories = [];
 
@@ -23,7 +23,7 @@ const listDirectories = async (
   }
 
   return directories;
-}
+};
 
 export const selectFolder = async (): Promise<string | null> => {
   let currentDir = ROOT_DIRECTORY;
@@ -70,4 +70,4 @@ export const selectFolder = async (): Promise<string | null> => {
       );
     }
   }
-}
+};
