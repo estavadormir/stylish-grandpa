@@ -2,18 +2,17 @@ import { selectFolder } from "./cli";
 import { processImages } from "./imageProcessor";
 import ora from "ora";
 
-const main = async () => {
+const main = async (): Promise<void> => {
   displayWelcomeMessage();
 
   try {
     const folderPath = await selectFolder();
 
-    // If the user cancels the prompt, `folderPath` will be `null`
     if (!folderPath) {
       console.log(
         "Oups, sorry that you didn't like us enough to make your images smaller."
       );
-      return; // Exit the program
+      return;
     }
 
     const spinner = ora("Optimizing images...").start();
@@ -30,7 +29,7 @@ const main = async () => {
   }
 };
 
-const displayWelcomeMessage = () => {
+const displayWelcomeMessage = (): void => {
   console.log(`
     ⛱️  Welcome to the Image Optimizer CLI!  ⛱️
     -----------------------------------------

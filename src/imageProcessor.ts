@@ -7,6 +7,27 @@ interface ImageOptions {
   height?: number;
 }
 
+const MAX_FILE_SIZE_KB = 100; // Target size in KB
+
+const compressImage = async (
+  imagePath: string,
+  outputPath: string,
+  options: sharp.WebpOptions
+): Promise<void> => {
+  await sharp(imagePath).toFormat("webp", options).toFile(outputPath);
+
+  const stats = await fs.stat(outputPath);
+  if (
+    stats.size / 1024 > MAX_FILE_SIZE_KB &&
+    options.quality &&
+    options.quality > 10
+  ) {
+    // Reduce the quality and try again if the image is too big
+    options.quality -= 10;
+    await compressImage(imagePath, outputPath, options);
+  }
+};
+
 const optimizeAndConvertImage = async (
   imagePath: string,
   outputDir: string,
@@ -15,20 +36,13 @@ const optimizeAndConvertImage = async (
   const ext = path.extname(imagePath);
   const baseName = path.basename(imagePath, ext);
 
-  const fullSizePath = path.join(outputDir, baseName);
-  const mobileSizePath = path.join(outputDir, `${baseName}-mobile`);
+  const outputFileName = `${baseName}.webp`;
+  const fullSizePath = path.join(outputDir, outputFileName);
 
-  // Create output directories if they don't exist
-  await fs.ensureDir(fullSizePath);
-  await fs.ensureDir(mobileSizePath);
+  await fs.ensureDir(outputDir);
 
-  const sharpInstance = sharp(imagePath);
-
-  // Original and webp conversion
-  await sharpInstance.toFile(path.join(fullSizePath, `${baseName}${ext}`));
-  await sharpInstance
-    .toFormat("webp")
-    .toFile(path.join(fullSizePath, `${baseName}.webp`));
+  const initialOptions: sharp.WebpOptions = { quality: 80 };
+  await compressImage(imagePath, fullSizePath, initialOptions);
 
   // Mobile version
   if (options.width || options.height) {
@@ -36,11 +50,9 @@ const optimizeAndConvertImage = async (
       options.width,
       options.height
     );
+    const mobileSizePath = path.join(outputDir, `${baseName}-mobile.webp`);
 
-    await mobileInstance.toFile(path.join(mobileSizePath, `${baseName}${ext}`));
-    await mobileInstance
-      .toFormat("webp")
-      .toFile(path.join(mobileSizePath, `${baseName}.webp`));
+    await compressImage(imagePath, mobileSizePath, { quality: 80 });
   }
 };
 
@@ -71,10 +83,12 @@ export const processImages = async (folderPath: string): Promise<number> => {
     return 0; // No images to process
   }
 
+  // Create an output directory
+  const outputDir = path.join(folderPath, "optimized");
+  await fs.ensureDir(outputDir);
+
   for (const imageFile of imageFiles) {
-    await optimizeAndConvertImage(imageFile, path.dirname(imageFile), {
-      width: 800,
-    });
+    await optimizeAndConvertImage(imageFile, outputDir, { width: 800 });
   }
 
   return imageFiles.length;
