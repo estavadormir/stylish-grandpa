@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp, { type FormatEnum } from "sharp";
 import fs from "fs-extra";
 import path from "path";
 
@@ -12,16 +12,14 @@ const MAX_FILE_SIZE_KB = 100; // Target size in KB
 const compressImage = async (
   imagePath: string,
   outputPath: string,
-  options: sharp.WebpOptions
+  options: { format: keyof FormatEnum; quality: number }
 ): Promise<void> => {
-  await sharp(imagePath).toFormat("webp", options).toFile(outputPath);
+  await sharp(imagePath)
+    .toFormat(options.format, { quality: options.quality })
+    .toFile(outputPath);
 
   const stats = await fs.stat(outputPath);
-  if (
-    stats.size / 1024 > MAX_FILE_SIZE_KB &&
-    options.quality &&
-    options.quality > 10
-  ) {
+  if (stats.size / 1024 > MAX_FILE_SIZE_KB && options.quality > 10) {
     // Reduce the quality and try again if the image is too big
     options.quality -= 10;
     await compressImage(imagePath, outputPath, options);
@@ -36,12 +34,15 @@ const optimizeAndConvertImage = async (
   const ext = path.extname(imagePath);
   const baseName = path.basename(imagePath, ext);
 
-  const outputFileName = `${baseName}.webp`;
+  const outputFileName = `${baseName}${ext}`;
   const fullSizePath = path.join(outputDir, outputFileName);
 
   await fs.ensureDir(outputDir);
 
-  const initialOptions: sharp.WebpOptions = { quality: 80 };
+  const initialOptions = {
+    format: ext.substring(1) as keyof FormatEnum,
+    quality: 80,
+  };
   await compressImage(imagePath, fullSizePath, initialOptions);
 
   // Mobile version
@@ -50,9 +51,12 @@ const optimizeAndConvertImage = async (
       options.width,
       options.height
     );
-    const mobileSizePath = path.join(outputDir, `${baseName}-mobile.webp`);
+    const mobileSizePath = path.join(outputDir, `${baseName}-mobile${ext}`);
 
-    await compressImage(imagePath, mobileSizePath, { quality: 80 });
+    await compressImage(imagePath, mobileSizePath, {
+      format: ext.substring(1) as keyof FormatEnum,
+      quality: 80,
+    });
   }
 };
 
