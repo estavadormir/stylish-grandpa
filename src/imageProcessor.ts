@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp, { type FormatEnum } from "sharp";
 import fs from "fs-extra";
 import path from "path";
 
@@ -6,6 +6,25 @@ interface ImageOptions {
   width?: number;
   height?: number;
 }
+
+const MAX_FILE_SIZE_KB = 100; // Target size in KB
+
+const compressImage = async (
+  imagePath: string,
+  outputPath: string,
+  options: { format: keyof FormatEnum; quality: number }
+): Promise<void> => {
+  await sharp(imagePath)
+    .toFormat(options.format, { quality: options.quality })
+    .toFile(outputPath);
+
+  const stats = await fs.stat(outputPath);
+  if (stats.size / 1024 > MAX_FILE_SIZE_KB && options.quality > 10) {
+    // Reduce the quality and try again if the image is too big
+    options.quality -= 10;
+    await compressImage(imagePath, outputPath, options);
+  }
+};
 
 const optimizeAndConvertImage = async (
   imagePath: string,
@@ -15,32 +34,48 @@ const optimizeAndConvertImage = async (
   const ext = path.extname(imagePath);
   const baseName = path.basename(imagePath, ext);
 
-  const fullSizePath = path.join(outputDir, baseName);
-  const mobileSizePath = path.join(outputDir, `${baseName}-mobile`);
+  // Ensure output directory exists
+  await fs.ensureDir(outputDir);
 
-  // Create output directories if they don't exist
-  await fs.ensureDir(fullSizePath);
-  await fs.ensureDir(mobileSizePath);
+  // 1. Original format compressed
+  const originalOutputFileName = `${baseName}${ext}`;
+  const originalFullSizePath = path.join(outputDir, originalOutputFileName);
+  await compressImage(imagePath, originalFullSizePath, {
+    format: ext.substring(1) as keyof FormatEnum,
+    quality: 80,
+  });
 
-  const sharpInstance = sharp(imagePath);
-
-  // Original and webp conversion
-  await sharpInstance.toFile(path.join(fullSizePath, `${baseName}${ext}`));
-  await sharpInstance
-    .toFormat("webp")
-    .toFile(path.join(fullSizePath, `${baseName}.webp`));
-
-  // Mobile version
+  // 2. Original format mobile version
   if (options.width || options.height) {
-    const mobileInstance = sharp(imagePath).resize(
+    const originalMobileSizePath = path.join(
+      outputDir,
+      `${baseName}-mobile${ext}`
+    );
+    const originalMobileInstance = sharp(imagePath).resize(
       options.width,
       options.height
     );
+    await compressImage(imagePath, originalMobileSizePath, {
+      format: ext.substring(1) as keyof FormatEnum,
+      quality: 80,
+    });
+  }
 
-    await mobileInstance.toFile(path.join(mobileSizePath, `${baseName}${ext}`));
-    await mobileInstance
-      .toFormat("webp")
-      .toFile(path.join(mobileSizePath, `${baseName}.webp`));
+  // 3. WebP version
+  const webpOutputFileName = `${baseName}.webp`;
+  const webpFullSizePath = path.join(outputDir, webpOutputFileName);
+  await compressImage(imagePath, webpFullSizePath, {
+    format: "webp",
+    quality: 80,
+  });
+
+  // 4. WebP mobile version
+  if (options.width || options.height) {
+    const webpMobileSizePath = path.join(outputDir, `${baseName}-mobile.webp`);
+    await compressImage(imagePath, webpMobileSizePath, {
+      format: "webp",
+      quality: 80,
+    });
   }
 };
 
@@ -71,10 +106,12 @@ export const processImages = async (folderPath: string): Promise<number> => {
     return 0; // No images to process
   }
 
+  // Create an output directory
+  const outputDir = path.join(folderPath, "optimized");
+  await fs.ensureDir(outputDir);
+
   for (const imageFile of imageFiles) {
-    await optimizeAndConvertImage(imageFile, path.dirname(imageFile), {
-      width: 800,
-    });
+    await optimizeAndConvertImage(imageFile, outputDir, { width: 800 });
   }
 
   return imageFiles.length;

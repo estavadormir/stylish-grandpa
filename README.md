@@ -1,10 +1,10 @@
 # Image Optimizer CLI
 
-This CLI tool optimizes images in a selected folder and generates two sets of images: original and mobile versions, in their original format and WebP.
+This CLI tool optimizes images in a selected folder and generates WebP images, ensuring that the images are reduced in size below 100KB without losing significant quality.
 
 ## Features
 
-- Converts images to WebP. 💾
+- Converts images to WebP while maintaining the targeted file size. 💾
 - Creates a mobile version for each image. 📱
 - Recursively processes images in nested folders. 🚀
 - Directory autocomplete in folder selection. 🔍
