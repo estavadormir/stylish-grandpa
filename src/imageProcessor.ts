@@ -34,27 +34,46 @@ const optimizeAndConvertImage = async (
   const ext = path.extname(imagePath);
   const baseName = path.basename(imagePath, ext);
 
-  const outputFileName = `${baseName}${ext}`;
-  const fullSizePath = path.join(outputDir, outputFileName);
-
+  // Ensure output directory exists
   await fs.ensureDir(outputDir);
 
-  const initialOptions = {
+  // 1. Original format compressed
+  const originalOutputFileName = `${baseName}${ext}`;
+  const originalFullSizePath = path.join(outputDir, originalOutputFileName);
+  await compressImage(imagePath, originalFullSizePath, {
     format: ext.substring(1) as keyof FormatEnum,
     quality: 80,
-  };
-  await compressImage(imagePath, fullSizePath, initialOptions);
+  });
 
-  // Mobile version
+  // 2. Original format mobile version
   if (options.width || options.height) {
-    const mobileInstance = sharp(imagePath).resize(
+    const originalMobileSizePath = path.join(
+      outputDir,
+      `${baseName}-mobile${ext}`
+    );
+    const originalMobileInstance = sharp(imagePath).resize(
       options.width,
       options.height
     );
-    const mobileSizePath = path.join(outputDir, `${baseName}-mobile${ext}`);
-
-    await compressImage(imagePath, mobileSizePath, {
+    await compressImage(imagePath, originalMobileSizePath, {
       format: ext.substring(1) as keyof FormatEnum,
+      quality: 80,
+    });
+  }
+
+  // 3. WebP version
+  const webpOutputFileName = `${baseName}.webp`;
+  const webpFullSizePath = path.join(outputDir, webpOutputFileName);
+  await compressImage(imagePath, webpFullSizePath, {
+    format: "webp",
+    quality: 80,
+  });
+
+  // 4. WebP mobile version
+  if (options.width || options.height) {
+    const webpMobileSizePath = path.join(outputDir, `${baseName}-mobile.webp`);
+    await compressImage(imagePath, webpMobileSizePath, {
+      format: "webp",
       quality: 80,
     });
   }
